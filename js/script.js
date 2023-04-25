@@ -70,7 +70,9 @@ async function displayPopularMovies(){
 // get popular tv series
 async function displayPopularShows(){
     const url = `https://api.themoviedb.org/3/tv/popular?`
+    
     const { results } = await fetchData(url)
+    
     const popular = document.querySelector('#popular-shows')
     console.log(results);
     results.forEach(show => {
@@ -109,16 +111,42 @@ async function displayPopularShows(){
     })
 }
 
+
+async function dispplayBackgroundImage(type, backgroundPath){
+    const overlayDiv = document.createElement('div')
+    overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${backgroundPath})`
+    overlayDiv.style.backgroundSize = 'cover'
+    overlayDiv.style.backgroundPosition = 'center'
+    overlayDiv.style.backgroundRepeat = 'no-repeat'
+    overlayDiv.style.height = '100vh'
+    overlayDiv.style.width = '100vw'
+    overlayDiv.style.position = 'absolute'
+    overlayDiv.style.top = '0'
+    overlayDiv.style.left = '0'
+    overlayDiv.style.zIndex = '-1'
+    overlayDiv.style.opacity = '0.1'
+
+
+    if (type === 'movie'){
+        document.querySelector('#movie-details').appendChild(overlayDiv)
+
+    } else{
+        document.querySelector('#show-details').appendChild(overlayDiv)
+
+    }
+}
+
+
+
+
 // get movie detail
-async function displayMovieDetails(id){
+async function displayMovieDetails(){
     const movieId = window.location.search.split('=')[1]
     const movie = await fetchData(`https://api.themoviedb.org/3/movie/${movieId}?`)
 
 
-
-    // const x = movie.genres.map(genre => `<li>${genre.name}</li>`)
-    // console.log(x);
-    console.log(movie);
+    // overlay for background img
+    dispplayBackgroundImage('movie', movie.backdrop_path)
 
 
     const div = document.createElement('div')
@@ -177,6 +205,68 @@ async function displayMovieDetails(id){
 }
 
 
+// get show detail
+async function displayShowDetails(){
+    const showId = window.location.search.split('=')[1]
+    const show = await fetchData(`https://api.themoviedb.org/3/tv/${showId}?`)
+    console.log(show);
+
+    // overlay for background img
+    dispplayBackgroundImage('show', show.backdrop_path)
+
+
+    const div = document.createElement('div')
+    div.innerHTML = 
+    `
+        <div class="details-top">
+        <div>
+        <a href="tv-details.html?id=${show.id}">
+        ${show.poster_path ? 
+            `
+                <img
+                src="https://image.tmdb.org/t/p/w500/${show.poster_path}"
+                class="card-img-top"
+                alt="${show.name}"/>
+            `: 
+            `
+                <img
+                src="..images/no-image.jpg"
+                class="card-img-top"
+                alt="${show.name}"/>
+
+            `
+        }
+        </div>
+        <div>
+        <h2>${show.name}</h2>
+        <p>
+            <i class="fas fa-star text-primary"></i>
+            ${show.vote_average.toFixed(1)} / 10
+        </p>
+        <p class="text-muted">Release Date: ${show.first_air_date}</p>
+        <p>
+            ${show.overview}
+        </p>
+        <h5>Genres</h5>
+        <ul class="list-group">
+            ${show.genres.map(genre => `<li>${genre.name}</li>`).join('')}
+        </ul>
+        <a href="${show.homepage}" target="_blank" class="btn">Visit Movie Homepage</a>
+        </div>
+    </div>
+    <div class="details-bottom">
+        <h2>Movie Info</h2>
+        <ul>
+        <li><span class="text-secondary">Number of Episode:</span> ${show.number_of_episodes}</li>
+        </ul>
+        <h4>Production Companies</h4>
+        <div class="list-group">${show.production_companies.map(company => `${company.name}`).join(' ')}</div>
+    </div>
+    `
+    document.querySelector('#show-details').appendChild(div)
+
+}
+
 
 
 //add spinner
@@ -207,6 +297,7 @@ function init(){
     }
     if(global.currentPage ==='/tv-details.html'){
         console.log('tv detail');
+        displayShowDetails()
     }
     if(global.currentPage ==='/search.html'){
         console.log('search');
