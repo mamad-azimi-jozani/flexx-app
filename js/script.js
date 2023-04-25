@@ -7,7 +7,9 @@ const global = {
 
 // fetch data from tmdb API
 async function fetchData(url){
+    showSpinner()
     const response = await fetch(`${url}api_key=${apiKey}&language=en-US&page=1`)
+    hideSpinner()
     return response.json()
 }
 
@@ -65,6 +67,59 @@ async function displayPopularMovies(){
 }
 
 
+// get popular tv series
+async function displayPopularShows(){
+    const url = `https://api.themoviedb.org/3/tv/popular?`
+    const { results } = await fetchData(url)
+    const popular = document.querySelector('#popular-shows')
+    console.log(results);
+    results.forEach(show => {
+        console.log(show.popular);
+        const div = document.createElement('div')
+        div.classList.add('card')
+        div.innerHTML = 
+        `
+        <a href="tv-details.html?id=${show.id}">
+        ${show.poster_path ? 
+            `
+                <img
+                src="https://image.tmdb.org/t/p/w500/${show.poster_path}"
+                class="card-img-top"
+                alt="${show.original_name}"/>
+            `: 
+            `
+                <img
+                src="..images/no-image.jpg"
+                class="card-img-top"
+                alt="${show.original_name}"/>
+
+            `
+        }
+        </a>
+        <div class="card-body">
+          <h5 class="card-title">${show.original_title}</h5>
+          <p class="card-text">
+            <small class="text-muted">Release: ${show.first_air_date}</small>
+          </p>
+        </div>
+        `
+
+        popular.appendChild(div)
+
+    })
+}
+
+//add spinner
+function showSpinner(){
+    document.querySelector('.spinner').classList.add('show')
+}
+
+function hideSpinner(){
+    document.querySelector('.spinner').classList.remove('show')
+
+}
+
+
 
 //init app
 function init(){
@@ -74,6 +129,7 @@ function init(){
     }
     if (global.currentPage === '/shows.html') {
         console.log('shows');
+        displayPopularShows()
     }
     if(global.currentPage ==='/movie-details.html'){
         console.log('movie detail');
@@ -84,6 +140,7 @@ function init(){
     if(global.currentPage ==='/search.html'){
         console.log('search');
     }
+
     highlightActiveLink()
 }
 
